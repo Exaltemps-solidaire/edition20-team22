@@ -3,6 +3,8 @@ import Link from "next/link";
 import { donateurs } from "../donnees";
 import { donsParDonateur } from "../dons";
 import { trierDonsDecroissant } from "../trier";
+import { scoreCompletude, syntheseDons } from "../synthese";
+import { journalEnvois } from "../../communication/donnees";
 import styles from "../liste-donateurs.module.css";
 
 export function generateStaticParams() {
@@ -23,40 +25,170 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
   if (!donateur) notFound();
 
   const dons = trierDonsDecroissant(donsParDonateur[id] ?? []);
+  const synthese = syntheseDons(dons);
+  const completude = scoreCompletude(donateur);
+  const nomComplet = `${donateur.prenom} ${donateur.nom}`;
+  const communicationsRecues = journalEnvois.filter((envoi) => envoi.donateur === nomComplet);
 
   return (
     <div className={styles.conteneur}>
-      <p>
+      <p className={styles.nav}>
         <Link href="/">← Retour à la liste</Link>
       </p>
-      <h1>
-        {donateur.prenom} {donateur.nom}
-      </h1>
-      <p>{donateur.email}</p>
-      <p>
-        <span className={styles.badge}>{donateur.statut}</span>{" "}
-        <span className={styles.badge}>{donateur.persona}</span>
-      </p>
 
-      <h2>Historique des dons</h2>
-      <table className={styles.tableau}>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Montant</th>
-            <th>Canal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {dons.map((don, index) => (
-            <tr key={index}>
-              <td>{formatDate(don.date)}</td>
-              <td>{formatMontant(don.montantCentimes)}</td>
-              <td>{don.canal}</td>
+      <section className={styles.carte}>
+        <div className={styles.enTeteFiche}>
+          <div>
+            <h1>
+              {donateur.civilite ? `${donateur.civilite} ` : ""}
+              {donateur.prenom} {donateur.nom}
+            </h1>
+            <p className={styles.soustitre}>{donateur.email}</p>
+            <p>
+              <span className={styles.badge}>{donateur.statut}</span>{" "}
+              <span className={styles.badge}>{donateur.persona}</span>
+            </p>
+          </div>
+          <div className={styles.scoreCompletude}>
+            <span className={styles.scoreValeur}>{completude}%</span>
+            <span className={styles.scoreLabel}>Fiche complète</span>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.carte}>
+        <h2>Informations personnelles</h2>
+        <dl className={styles.grilleInfos}>
+          <div>
+            <dt>Téléphone</dt>
+            <dd>{donateur.telephone ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Date de naissance</dt>
+            <dd>{donateur.dateNaissance ? formatDate(donateur.dateNaissance) : "—"}</dd>
+          </div>
+          <div>
+            <dt>Ville</dt>
+            <dd>{donateur.ville ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Source d&apos;acquisition</dt>
+            <dd>{donateur.sourceAcquisition ?? "—"}</dd>
+          </div>
+        </dl>
+      </section>
+
+      {donateur.engagement && (
+        <section className={styles.carte}>
+          <h2>Engagement en cours</h2>
+          <dl className={styles.grilleInfos}>
+            <div>
+              <dt>Montant</dt>
+              <dd>{formatMontant(donateur.engagement.montantCentimes)}</dd>
+            </div>
+            <div>
+              <dt>Fréquence</dt>
+              <dd>{donateur.engagement.frequence}</dd>
+            </div>
+            <div>
+              <dt>Moyen de paiement</dt>
+              <dd>{donateur.engagement.moyenPaiement}</dd>
+            </div>
+            <div>
+              <dt>Début</dt>
+              <dd>{formatDate(donateur.engagement.dateDebut)}</dd>
+            </div>
+            <div>
+              <dt>Échéances réussies</dt>
+              <dd>{donateur.engagement.echeancesReussies}</dd>
+            </div>
+            <div>
+              <dt>Statut</dt>
+              <dd>
+                <span className={styles.badge}>{donateur.engagement.statut}</span>
+              </dd>
+            </div>
+          </dl>
+        </section>
+      )}
+
+      <section className={styles.carte}>
+        <h2>Synthèse des dons</h2>
+        <dl className={styles.grilleInfos}>
+          <div>
+            <dt>Total cumulé</dt>
+            <dd>{formatMontant(synthese.totalCentimes)}</dd>
+          </div>
+          <div>
+            <dt>Nombre de dons</dt>
+            <dd>{synthese.nombreDons}</dd>
+          </div>
+          <div>
+            <dt>Don moyen</dt>
+            <dd>{formatMontant(synthese.donMoyenCentimes)}</dd>
+          </div>
+          <div>
+            <dt>Premier don</dt>
+            <dd>{synthese.premierDon ? formatDate(synthese.premierDon) : "—"}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className={styles.carte}>
+        <h2>Historique des dons</h2>
+        <table className={styles.tableau}>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Montant</th>
+              <th>Moyen de paiement</th>
+              <th>Statut</th>
+              <th>Campagne</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {dons.map((don, index) => (
+              <tr key={index}>
+                <td>{formatDate(don.date)}</td>
+                <td>{formatMontant(don.montantCentimes)}</td>
+                <td>{don.moyenPaiement ?? don.canal}</td>
+                <td>
+                  <span className={styles.badge}>{don.statut ?? "Réussi"}</span>
+                </td>
+                <td>{don.campagne ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className={styles.carte}>
+        <h2>Historique des communications</h2>
+        {communicationsRecues.length === 0 ? (
+          <p className={styles.vide}>Aucune communication envoyée pour l&apos;instant.</p>
+        ) : (
+          <table className={styles.tableau}>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Canal</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {communicationsRecues.map((envoi, index) => (
+                <tr key={index}>
+                  <td>{formatDate(envoi.date)}</td>
+                  <td>{envoi.canal}</td>
+                  <td>
+                    <span className={styles.badge}>{envoi.statut}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 }

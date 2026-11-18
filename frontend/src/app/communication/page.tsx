@@ -1,63 +1,69 @@
-import Link from "next/link";
-import { parcours, journalEnvois } from "./donnees";
+import { parcoursListe, journalEnvois } from "./donnees";
 import { trierEtapes } from "./trierEtapes";
 import styles from "../donateurs/liste-donateurs.module.css";
 
 export default function Communication() {
-  const etapes = trierEtapes(parcours.etapes);
-
   return (
     <div className={styles.conteneur}>
-      <p>
-        <Link href="/">← Donateurs</Link>
-      </p>
       <h1>Communication</h1>
+      <p className={styles.soustitre}>Parcours automatisés par persona et historique des envois.</p>
 
-      <h2>Parcours : {parcours.nom}</h2>
-      <table className={styles.tableau}>
-        <thead>
-          <tr>
-            <th>Étape</th>
-            <th>Déclencheur</th>
-            <th>Délai</th>
-            <th>Type d&apos;envoi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {etapes.map((etape) => (
-            <tr key={etape.ordre}>
-              <td>{etape.ordre}</td>
-              <td>{etape.declencheur}</td>
-              <td>{etape.delai}</td>
-              <td>{etape.typeEnvoi}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {parcoursListe.map((parcours) => (
+        <section className={styles.carte} key={parcours.id}>
+          <h2>
+            {parcours.nom} <span className={styles.badge}>{parcours.persona}</span>
+          </h2>
+          <table className={styles.tableau}>
+            <thead>
+              <tr>
+                <th>Étape</th>
+                <th>Déclencheur</th>
+                <th>Délai</th>
+                <th>Type d&apos;envoi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trierEtapes(parcours.etapes).map((etape) => (
+                <tr key={etape.id}>
+                  <td>{etape.ordre}</td>
+                  <td>
+                    {etape.declencheur}{" "}
+                    {etape.partagee && <span className={styles.badgePartagee}>partagée</span>}
+                  </td>
+                  <td>{etape.delai}</td>
+                  <td>{etape.typeEnvoi}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ))}
 
-      <h2>Journal d&apos;envois</h2>
-      <table className={styles.tableau}>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Donateur</th>
-            <th>Canal</th>
-            <th>Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {journalEnvois.map((envoi, index) => (
-            <tr key={index}>
-              <td>{envoi.date}</td>
-              <td>{envoi.donateur}</td>
-              <td>{envoi.canal}</td>
-              <td>
-                <span className={styles.badge}>{envoi.statut}</span>
-              </td>
+      <section className={styles.carte}>
+        <h2>Journal d&apos;envois</h2>
+        <table className={styles.tableau}>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Donateur</th>
+              <th>Canal</th>
+              <th>Statut</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {journalEnvois.map((envoi, index) => (
+              <tr key={index}>
+                <td>{envoi.date}</td>
+                <td>{envoi.donateur}</td>
+                <td>{envoi.canal}</td>
+                <td>
+                  <span className={styles.badge}>{envoi.statut}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }
