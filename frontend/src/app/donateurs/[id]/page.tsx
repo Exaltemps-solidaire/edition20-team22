@@ -5,6 +5,7 @@ import { donsParDonateur } from "../dons";
 import { trierDonsDecroissant } from "../trier";
 import { scoreCompletude, syntheseDons } from "../synthese";
 import { journalEnvois } from "../../communication/donnees";
+import { badgeClasse } from "../../badge";
 import styles from "../liste-donateurs.module.css";
 
 export function generateStaticParams() {
@@ -40,13 +41,17 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
         <div className={styles.enTeteFiche}>
           <div>
             <h1>
+              <span className={`${styles.avatar} ${styles.avatarGrand}`}>
+                {donateur.prenom[0]}
+                {donateur.nom[0]}
+              </span>{" "}
               {donateur.civilite ? `${donateur.civilite} ` : ""}
               {donateur.prenom} {donateur.nom}
             </h1>
             <p className={styles.soustitre}>{donateur.email}</p>
             <p>
-              <span className={styles.badge}>{donateur.statut}</span>{" "}
-              <span className={styles.badge}>{donateur.persona}</span>
+              <span className={badgeClasse(styles, "statutDonateur", donateur.statut)}>{donateur.statut}</span>{" "}
+              <span className={badgeClasse(styles, "persona", donateur.persona)}>{donateur.persona}</span>
             </p>
           </div>
           <div className={styles.scoreCompletude}>
@@ -105,7 +110,9 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
             <div>
               <dt>Statut</dt>
               <dd>
-                <span className={styles.badge}>{donateur.engagement.statut}</span>
+                <span className={badgeClasse(styles, "statutEngagement", donateur.engagement.statut)}>
+                  {donateur.engagement.statut}
+                </span>
               </dd>
             </div>
           </dl>
@@ -153,7 +160,9 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
                 <td>{formatMontant(don.montantCentimes)}</td>
                 <td>{don.moyenPaiement ?? don.canal}</td>
                 <td>
-                  <span className={styles.badge}>{don.statut ?? "Réussi"}</span>
+                  <span className={badgeClasse(styles, "statutDon", don.statut ?? "Réussi")}>
+                    {don.statut ?? "Réussi"}
+                  </span>
                 </td>
                 <td>{don.campagne ?? "—"}</td>
               </tr>
@@ -181,7 +190,7 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
                   <td>{formatDate(envoi.date)}</td>
                   <td>{envoi.canal}</td>
                   <td>
-                    <span className={styles.badge}>{envoi.statut}</span>
+                    <span className={badgeClasse(styles, "statutEnvoi", envoi.statut)}>{envoi.statut}</span>
                   </td>
                 </tr>
               ))}

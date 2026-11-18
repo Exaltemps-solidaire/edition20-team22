@@ -1,5 +1,6 @@
 import { parcoursListe, journalEnvois } from "./donnees";
 import { trierEtapes } from "./trierEtapes";
+import { badgeClasse } from "../badge";
 import styles from "../donateurs/liste-donateurs.module.css";
 
 export default function Communication() {
@@ -11,7 +12,7 @@ export default function Communication() {
       {parcoursListe.map((parcours) => (
         <section className={styles.carte} key={parcours.id}>
           <h2>
-            {parcours.nom} <span className={styles.badge}>{parcours.persona}</span>
+            {parcours.nom} <span className={badgeClasse(styles, "persona", parcours.persona)}>{parcours.persona}</span>
           </h2>
           <table className={styles.tableau}>
             <thead>
@@ -57,7 +58,7 @@ export default function Communication() {
                 <td>{envoi.donateur}</td>
                 <td>{envoi.canal}</td>
                 <td>
-                  <span className={styles.badge}>{envoi.statut}</span>
+                  <span className={badgeClasse(styles, "statutEnvoi", envoi.statut)}>{envoi.statut}</span>
                 </td>
               </tr>
             ))}

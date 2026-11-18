@@ -6,6 +6,7 @@ import type { Donateur } from "./donnees";
 import { donsParDonateur } from "./dons";
 import { filtrerDonateurs } from "./filtrer";
 import { syntheseDons } from "./synthese";
+import { badgeClasse } from "../badge";
 import styles from "./liste-donateurs.module.css";
 
 function formatMontant(centimes: number): string {
@@ -14,6 +15,10 @@ function formatMontant(centimes: number): string {
 
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString("fr-FR");
+}
+
+function initiales(donateur: Donateur): string {
+  return `${donateur.prenom[0] ?? ""}${donateur.nom[0] ?? ""}`.toUpperCase();
 }
 
 const TOUS = "Tous";
@@ -89,16 +94,17 @@ export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] })
             return (
               <tr key={donateur.id}>
                 <td>
-                  <Link href={`/donateurs/${donateur.id}`}>
+                  <Link href={`/donateurs/${donateur.id}`} className={styles.nomAvecAvatar}>
+                    <span className={styles.avatar}>{initiales(donateur)}</span>
                     {donateur.prenom} {donateur.nom}
                   </Link>
                 </td>
                 <td>{donateur.email}</td>
                 <td>
-                  <span className={styles.badge}>{donateur.statut}</span>
+                  <span className={badgeClasse(styles, "statutDonateur", donateur.statut)}>{donateur.statut}</span>
                 </td>
                 <td>
-                  <span className={styles.badge}>{donateur.persona}</span>
+                  <span className={badgeClasse(styles, "persona", donateur.persona)}>{donateur.persona}</span>
                 </td>
                 <td>
                   {formatMontant(donateur.dernierDon.montantCentimes)} le {formatDate(donateur.dernierDon.date)}
