@@ -7,6 +7,7 @@ import { scoreCompletude, syntheseDons } from "../synthese";
 import { journalModifications } from "../modifications";
 import { journalEnvois } from "../../communication/donnees";
 import { badgeClasse } from "../../badge";
+import ForcerPersona from "./ForcerPersona";
 import styles from "../liste-donateurs.module.css";
 
 export function generateStaticParams() {
@@ -53,7 +54,7 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
             <p className={styles.soustitre}>{donateur.email}</p>
             <p>
               <span className={badgeClasse(styles, "statutDonateur", donateur.statut)}>{donateur.statut}</span>{" "}
-              <span className={badgeClasse(styles, "persona", donateur.persona)}>{donateur.persona}</span>
+              <ForcerPersona personaInitial={donateur.persona} />
             </p>
           </div>
           <div className={styles.scoreCompletude}>

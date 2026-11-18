@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { parcoursListe, journalEnvois } from "./donnees";
+import { parcoursListe, journalEnvois, type Envoi } from "./donnees";
 import { templates } from "./templates";
 import { trierEtapes } from "./trierEtapes";
+import { donateurs } from "../donateurs/donnees";
 import { badgeClasse } from "../badge";
 import styles from "../donateurs/liste-donateurs.module.css";
 
 type Onglet = "parcours" | "templates" | "envois";
+
+const noms = donateurs.map((d) => `${d.prenom} ${d.nom}`);
 
 function formatPourcentage(valeur: number): string {
   return valeur.toLocaleString("fr-FR", { style: "percent", maximumFractionDigits: 0 });
@@ -15,6 +18,21 @@ function formatPourcentage(valeur: number): string {
 
 export default function Communication() {
   const [onglet, setOnglet] = useState<Onglet>("parcours");
+  const [envoisSimules, setEnvoisSimules] = useState<Envoi[]>([]);
+
+  function simulerEnvoi() {
+    const donateur = noms[Math.floor(Math.random() * noms.length)];
+    const canal: Envoi["canal"] = Math.random() > 0.5 ? "Email" : "SMS";
+    const nouvelEnvoi: Envoi = {
+      date: new Date().toISOString().slice(0, 10),
+      donateur,
+      canal,
+      statut: "Envoyé",
+    };
+    setEnvoisSimules((precedents) => [nouvelEnvoi, ...precedents]);
+  }
+
+  const envoisAffiches = [...envoisSimules, ...journalEnvois];
 
   return (
     <div className={styles.conteneur}>
@@ -117,7 +135,12 @@ export default function Communication() {
 
       {onglet === "envois" && (
         <section className={styles.carte}>
-          <h2>Journal d&apos;envois</h2>
+          <div className={styles.enTeteFiche}>
+            <h2>Journal d&apos;envois</h2>
+            <button type="button" className={styles.bouton} onClick={simulerEnvoi}>
+              + Simuler un envoi
+            </button>
+          </div>
           <table className={styles.tableau}>
             <thead>
               <tr>
@@ -128,7 +151,7 @@ export default function Communication() {
               </tr>
             </thead>
             <tbody>
-              {journalEnvois.map((envoi, index) => (
+              {envoisAffiches.map((envoi, index) => (
                 <tr key={index}>
                   <td>{envoi.date}</td>
                   <td>{envoi.donateur}</td>

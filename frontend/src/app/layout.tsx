@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "./components/Sidebar";
+import { AuthProvider } from "./auth/AuthContext";
 import styles from "./shell.module.css";
 import "./globals.css";
 
@@ -23,10 +24,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <div className={styles.shell}>
-          <Sidebar />
-          <div className={styles.contenu}>{children}</div>
-        </div>
+        <AuthProvider>
+          <div className={styles.shell}>
+            <Sidebar />
+            <div className={styles.contenu}>{children}</div>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

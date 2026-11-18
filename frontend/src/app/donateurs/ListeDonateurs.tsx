@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import type { Donateur } from "./donnees";
 import { donsParDonateur } from "./dons";
@@ -55,13 +55,25 @@ function telechargerCsv(donateurs: Donateur[]) {
   URL.revokeObjectURL(url);
 }
 
-export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] }) {
+export default function ListeDonateurs({ donateurs: donateursInitiaux }: { donateurs: Donateur[] }) {
+  const [donateursAjoutes, setDonateursAjoutes] = useState<Donateur[]>([]);
+  const [panneauOuvert, setPanneauOuvert] = useState(false);
+  const [nouveauNom, setNouveauNom] = useState("");
+  const [nouveauPrenom, setNouveauPrenom] = useState("");
+  const [nouvelEmail, setNouvelEmail] = useState("");
+  const [nouveauPersonaChamp, setNouveauPersonaChamp] = useState("Nouveau donateur");
+
   const [recherche, setRecherche] = useState("");
   const [persona, setPersona] = useState(TOUS);
   const [statut, setStatut] = useState(TOUS);
   const [frequence, setFrequence] = useState(TOUS);
   const [colonneTri, setColonneTri] = useState<ColonneTri | null>(null);
   const [ordreDescendant, setOrdreDescendant] = useState(true);
+
+  const donateurs = useMemo(
+    () => [...donateursAjoutes, ...donateursInitiaux],
+    [donateursAjoutes, donateursInitiaux],
+  );
 
   const personas = useMemo(() => [...new Set(donateurs.map((d) => d.persona))].sort(), [donateurs]);
   const statuts = useMemo(() => [...new Set(donateurs.map((d) => d.statut))].sort(), [donateurs]);
@@ -70,6 +82,25 @@ export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] })
       [...new Set(donateurs.map((d) => d.engagement?.frequence).filter(Boolean))].sort() as string[],
     [donateurs],
   );
+
+  function ajouterDonateur(evenement: FormEvent) {
+    evenement.preventDefault();
+    if (!nouveauNom.trim() || !nouveauPrenom.trim() || !nouvelEmail.trim()) return;
+    const nouveauDonateur: Donateur = {
+      id: `local-${Date.now()}`,
+      nom: nouveauNom.trim(),
+      prenom: nouveauPrenom.trim(),
+      email: nouvelEmail.trim(),
+      statut: "Nouveau",
+      persona: nouveauPersonaChamp,
+      dernierDon: { date: new Date().toISOString().slice(0, 10), montantCentimes: 0 },
+    };
+    setDonateursAjoutes((precedents) => [nouveauDonateur, ...precedents]);
+    setNouveauNom("");
+    setNouveauPrenom("");
+    setNouvelEmail("");
+    setPanneauOuvert(false);
+  }
 
   const resultats = filtrerDonateurs(donateurs, recherche, {
     persona: persona === TOUS ? undefined : persona,
@@ -113,6 +144,73 @@ export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] })
 
   return (
     <div className={`${styles.carte} ${styles.liste}`}>
+      <div className={styles.barreFiltres}>
+        <button
+          type="button"
+          className={styles.bouton}
+          onClick={() => setPanneauOuvert((ouvert) => !ouvert)}
+        >
+          {panneauOuvert ? "Annuler" : "+ Nouveau donateur"}
+        </button>
+      </div>
+
+      {panneauOuvert && (
+        <form className={`${styles.panneauAjout} ${styles.formulaire}`} onSubmit={ajouterDonateur}>
+          <div className={styles.grilleFormulaire}>
+            <label className={styles.champFormulaire}>
+              Prénom
+              <input
+                type="text"
+                value={nouveauPrenom}
+                onChange={(evenement) => setNouveauPrenom(evenement.target.value)}
+                className={styles.saisie}
+                required
+              />
+            </label>
+            <label className={styles.champFormulaire}>
+              Nom
+              <input
+                type="text"
+                value={nouveauNom}
+                onChange={(evenement) => setNouveauNom(evenement.target.value)}
+                className={styles.saisie}
+                required
+              />
+            </label>
+            <label className={styles.champFormulaire}>
+              Email
+              <input
+                type="email"
+                value={nouvelEmail}
+                onChange={(evenement) => setNouvelEmail(evenement.target.value)}
+                className={styles.saisie}
+                required
+              />
+            </label>
+            <label className={styles.champFormulaire}>
+              Persona
+              <select
+                value={nouveauPersonaChamp}
+                onChange={(evenement) => setNouveauPersonaChamp(evenement.target.value)}
+                className={styles.filtre}
+              >
+                {(personas.length > 0 ? personas : ["Nouveau donateur"]).map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <button type="submit" className={styles.bouton}>
+            Ajouter
+          </button>
+          <p className={styles.soustitre} style={{ margin: 0, fontSize: "0.8rem" }}>
+            Ajout simulé côté navigateur : non persisté, il disparaît si la page est rechargée.
+          </p>
+        </form>
+      )}
+
       <div className={styles.barreFiltres}>
         <input
           type="search"

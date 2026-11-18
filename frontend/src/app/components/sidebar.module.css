@@ -79,3 +79,58 @@
 .actif svg {
   opacity: 1;
 }
+
+.compte {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.compteInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.5rem;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+
+.compteInfo small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+.compteAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.boutonDeconnexion {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background: none;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.boutonDeconnexion:hover {
+  background: #1f2937;
+  color: #fff;
+}

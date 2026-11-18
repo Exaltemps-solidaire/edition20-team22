@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "../auth/AuthContext";
 import styles from "./sidebar.module.css";
 
 function IconeDashboard() {
@@ -51,6 +52,7 @@ const liens = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { utilisateur, deconnecter } = useAuth();
 
   return (
     <aside className={styles.sidebar}>
@@ -73,6 +75,26 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
+      <div className={styles.compte}>
+        {utilisateur ? (
+          <>
+            <div className={styles.compteInfo}>
+              <span className={styles.compteAvatar}>{utilisateur.nom[0]?.toUpperCase() ?? "?"}</span>
+              <span>
+                {utilisateur.nom}
+                <small>{utilisateur.email}</small>
+              </span>
+            </div>
+            <button type="button" className={styles.boutonDeconnexion} onClick={deconnecter}>
+              Se déconnecter
+            </button>
+          </>
+        ) : (
+          <Link href="/connexion" className={styles.lien}>
+            Se connecter
+          </Link>
+        )}
+      </div>
     </aside>
   );
 }
