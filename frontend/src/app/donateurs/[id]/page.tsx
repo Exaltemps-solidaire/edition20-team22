@@ -4,6 +4,7 @@ import { donateurs } from "../donnees";
 import { donsParDonateur } from "../dons";
 import { trierDonsDecroissant } from "../trier";
 import { scoreCompletude, syntheseDons } from "../synthese";
+import { journalModifications } from "../modifications";
 import { journalEnvois } from "../../communication/donnees";
 import { badgeClasse } from "../../badge";
 import styles from "../liste-donateurs.module.css";
@@ -30,6 +31,7 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
   const completude = scoreCompletude(donateur);
   const nomComplet = `${donateur.prenom} ${donateur.nom}`;
   const communicationsRecues = journalEnvois.filter((envoi) => envoi.donateur === nomComplet);
+  const modifications = journalModifications.filter((m) => m.donateurId === donateur.id);
 
   return (
     <div className={styles.conteneur}>
@@ -79,6 +81,70 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
           <div>
             <dt>Source d&apos;acquisition</dt>
             <dd>{donateur.sourceAcquisition ?? "—"}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className={styles.carte}>
+        <h2>Adresse et consentements</h2>
+        <dl className={styles.grilleInfos}>
+          <div>
+            <dt>Adresse</dt>
+            <dd>{donateur.adresse ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Code postal</dt>
+            <dd>{donateur.codePostal ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Ville</dt>
+            <dd>{donateur.ville ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Pays</dt>
+            <dd>{donateur.pays ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Consentement e-mail</dt>
+            <dd>
+              <span
+                className={badgeClasse(
+                  styles,
+                  "statutEngagement",
+                  donateur.consentements?.email ? "Actif" : "Arrêté",
+                )}
+              >
+                {donateur.consentements?.email ? "Autorisé" : "Refusé"}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Consentement SMS</dt>
+            <dd>
+              <span
+                className={badgeClasse(
+                  styles,
+                  "statutEngagement",
+                  donateur.consentements?.sms ? "Actif" : "Arrêté",
+                )}
+              >
+                {donateur.consentements?.sms ? "Autorisé" : "Refusé"}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Consentement courrier</dt>
+            <dd>
+              <span
+                className={badgeClasse(
+                  styles,
+                  "statutEngagement",
+                  donateur.consentements?.courrier ? "Actif" : "Arrêté",
+                )}
+              >
+                {donateur.consentements?.courrier ? "Autorisé" : "Refusé"}
+              </span>
+            </dd>
           </div>
         </dl>
       </section>
@@ -192,6 +258,36 @@ export default async function FicheDonateur({ params }: { params: Promise<{ id: 
                   <td>
                     <span className={badgeClasse(styles, "statutEnvoi", envoi.statut)}>{envoi.statut}</span>
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section className={styles.carte}>
+        <h2>Journal des modifications</h2>
+        {modifications.length === 0 ? (
+          <p className={styles.vide}>Aucune modification enregistrée.</p>
+        ) : (
+          <table className={styles.tableau}>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Champ</th>
+                <th>Ancienne valeur</th>
+                <th>Nouvelle valeur</th>
+                <th>Auteur</th>
+              </tr>
+            </thead>
+            <tbody>
+              {modifications.map((modification, index) => (
+                <tr key={index}>
+                  <td>{formatDate(modification.date)}</td>
+                  <td>{modification.champ}</td>
+                  <td>{modification.ancienneValeur}</td>
+                  <td>{modification.nouvelleValeur}</td>
+                  <td>{modification.auteur}</td>
                 </tr>
               ))}
             </tbody>

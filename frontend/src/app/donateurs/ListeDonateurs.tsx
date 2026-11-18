@@ -23,18 +23,93 @@ function initiales(donateur: Donateur): string {
 
 const TOUS = "Tous";
 
+type ColonneTri = "nom" | "dernierDon" | "totalCumule";
+
+function echapperCsv(valeur: string): string {
+  return `"${valeur.replace(/"/g, '""')}"`;
+}
+
+function telechargerCsv(donateurs: Donateur[]) {
+  const entetes = ["Nom", "Prénom", "Email", "Statut", "Persona", "Dernier don", "Total cumulé"];
+  const lignes = donateurs.map((donateur) => {
+    const synthese = syntheseDons(donsParDonateur[donateur.id] ?? []);
+    return [
+      donateur.nom,
+      donateur.prenom,
+      donateur.email,
+      donateur.statut,
+      donateur.persona,
+      formatMontant(donateur.dernierDon.montantCentimes),
+      formatMontant(synthese.totalCentimes),
+    ]
+      .map(echapperCsv)
+      .join(",");
+  });
+  const csv = [entetes.map(echapperCsv).join(","), ...lignes].join("\n");
+  const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = "donateurs.csv";
+  lien.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] }) {
   const [recherche, setRecherche] = useState("");
   const [persona, setPersona] = useState(TOUS);
   const [statut, setStatut] = useState(TOUS);
+  const [frequence, setFrequence] = useState(TOUS);
+  const [colonneTri, setColonneTri] = useState<ColonneTri | null>(null);
+  const [ordreDescendant, setOrdreDescendant] = useState(true);
 
   const personas = useMemo(() => [...new Set(donateurs.map((d) => d.persona))].sort(), [donateurs]);
   const statuts = useMemo(() => [...new Set(donateurs.map((d) => d.statut))].sort(), [donateurs]);
+  const frequences = useMemo(
+    () =>
+      [...new Set(donateurs.map((d) => d.engagement?.frequence).filter(Boolean))].sort() as string[],
+    [donateurs],
+  );
 
   const resultats = filtrerDonateurs(donateurs, recherche, {
     persona: persona === TOUS ? undefined : persona,
     statut: statut === TOUS ? undefined : statut,
+    frequence: frequence === TOUS ? undefined : frequence,
   });
+
+  const resultatsTries = useMemo(() => {
+    if (!colonneTri) return resultats;
+    const avecSynthese = resultats.map((donateur) => ({
+      donateur,
+      synthese: syntheseDons(donsParDonateur[donateur.id] ?? []),
+    }));
+    avecSynthese.sort((a, b) => {
+      let comparaison = 0;
+      if (colonneTri === "nom") {
+        comparaison = `${a.donateur.nom} ${a.donateur.prenom}`.localeCompare(`${b.donateur.nom} ${b.donateur.prenom}`);
+      } else if (colonneTri === "dernierDon") {
+        comparaison = a.donateur.dernierDon.date.localeCompare(b.donateur.dernierDon.date);
+      } else {
+        comparaison = a.synthese.totalCentimes - b.synthese.totalCentimes;
+      }
+      return ordreDescendant ? -comparaison : comparaison;
+    });
+    return avecSynthese.map((e) => e.donateur);
+  }, [resultats, colonneTri, ordreDescendant]);
+
+  function trierPar(colonne: ColonneTri) {
+    if (colonneTri === colonne) {
+      setOrdreDescendant(!ordreDescendant);
+    } else {
+      setColonneTri(colonne);
+      setOrdreDescendant(true);
+    }
+  }
+
+  function indicateurTri(colonne: ColonneTri): string {
+    if (colonneTri !== colonne) return "";
+    return ordreDescendant ? " ▼" : " ▲";
+  }
 
   return (
     <div className={`${styles.carte} ${styles.liste}`}>
@@ -73,6 +148,22 @@ export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] })
             </option>
           ))}
         </select>
+        <select
+          value={frequence}
+          onChange={(evenement) => setFrequence(evenement.target.value)}
+          className={styles.filtre}
+          aria-label="Filtrer par fréquence"
+        >
+          <option value={TOUS}>Toutes les fréquences</option>
+          {frequences.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+        <button type="button" className={styles.bouton} onClick={() => telechargerCsv(resultatsTries)}>
+          Exporter CSV
+        </button>
         <span className={styles.compteur}>
           {resultats.length} donateur{resultats.length > 1 ? "s" : ""}
         </span>
@@ -80,16 +171,28 @@ export default function ListeDonateurs({ donateurs }: { donateurs: Donateur[] })
       <table className={styles.tableau}>
         <thead>
           <tr>
-            <th>Nom</th>
+            <th>
+              <button type="button" className={styles.entetetriable} onClick={() => trierPar("nom")}>
+                Nom{indicateurTri("nom")}
+              </button>
+            </th>
             <th>Email</th>
             <th>Statut</th>
             <th>Persona</th>
-            <th>Dernier don</th>
-            <th>Total cumulé</th>
+            <th>
+              <button type="button" className={styles.entetetriable} onClick={() => trierPar("dernierDon")}>
+                Dernier don{indicateurTri("dernierDon")}
+              </button>
+            </th>
+            <th>
+              <button type="button" className={styles.entetetriable} onClick={() => trierPar("totalCumule")}>
+                Total cumulé{indicateurTri("totalCumule")}
+              </button>
+            </th>
           </tr>
         </thead>
         <tbody>
-          {resultats.map((donateur) => {
+          {resultatsTries.map((donateur) => {
             const synthese = syntheseDons(donsParDonateur[donateur.id] ?? []);
             return (
               <tr key={donateur.id}>

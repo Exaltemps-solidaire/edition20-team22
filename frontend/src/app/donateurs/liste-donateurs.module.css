@@ -343,3 +343,62 @@
   border-radius: 999px;
   background: var(--accent);
 }
+
+.bouton {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bouton:hover {
+  opacity: 0.9;
+}
+
+.entetetriable {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.entetetriable:hover {
+  color: var(--accent);
+}
+
+.onglets {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.onglet {
+  padding: 0.6rem 1rem;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.onglet:hover {
+  color: #27272a;
+}
+
+.ongletActif {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
